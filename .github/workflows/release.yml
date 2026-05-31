@@ -2,7 +2,7 @@ name: Build Universal Cross-Platform Release
 on:
   push:
     tags:
-      - 'v*' # Запуск автоматической сборки при создании тега (например, v1.0.0)
+      - 'v*'
 
 jobs:
   # 1. СБОРКА LINUX ПАКЕТОВ (.deb, .rpm)
@@ -17,11 +17,23 @@ jobs:
           sudo apt-get install -y ruby ruby-dev rubygems gcc make rpm
           sudo gem install --no-document fpm
 
+      - name: Patch code with sys for Linux
+        run: |
+          # Внедряем логику sys в код на лету, чтобы не трогать main.py на GitHub
+          echo -e "import sys\ndef get_path(name):\n    return getattr(sys, '_MEIPASS', '.') + '/' + name" > patched_main.py
+          cat main.py >> patched_main.py
+          sed -i 's/"background.mp3"/get_path("background.mp3")/g' patched_main.py
+          sed -i 's/"background.png"/get_path("background.png")/g' patched_main.py
+          sed -i 's/"Fluxoid_Logo.png"/get_path("Fluxoid_Logo.png")/g' patched_main.py
+          sed -i 's/"game_over.wav"/get_path("game_over.wav")/g' patched_main.py
+          sed -i 's/"win.wav"/get_path("win.wav")/g' patched_main.py
+
       - name: Prepare Package Directories
         run: |
           mkdir -p fluxoid-pkg/usr/local/bin
           mkdir -p fluxoid-pkg/usr/local/share/fluxoid
-          cp main.py background.png background.mp3 game_over.wav win.wav requirements.txt fluxoid-pkg/usr/local/share/fluxoid/
+          cp patched_main.py fluxoid-pkg/usr/local/share/fluxoid/main.py
+          cp Fluxoid_Logo.png background.png background.mp3 game_over.wav win.wav fluxoid-pkg/usr/local/share/fluxoid/
           echo -e '#!/bin/sh\npython3 /usr/local/share/fluxoid/main.py "$@"' > fluxoid-pkg/usr/local/bin/fluxoid
           chmod +x fluxoid-pkg/usr/local/bin/fluxoid
 
@@ -37,17 +49,53 @@ jobs:
             *.deb
             *.rpm
 
-  # 2. СБОРКА FLATPAK (Для NixOS преподавателя и любого Linux)
+  # 2. СБОРКА FLATPAK (Для преподавателя)
   build-flatpak:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
+      - name: Patch com.flicrowd.Fluxoid.yaml with Pygame-CE
+        run: |
+          # Перезаписываем манифест под правильный и современный pygame-ce
+          cat << 'EOF' > com.flicrowd.Fluxoid.yaml
+          id: com.flicrowd.Fluxoid
+          runtime: org.freedesktop.Platform
+          runtime-version: '23.08'
+          sdk: org.freedesktop.Sdk
+          command: fluxoid
+          finish-args:
+            - --socket=wayland
+            - --socket=fallback-x11
+            - --socket=pulseaudio
+            - --device=dri
+          modules:
+            - name: python3-pygame-ce
+              buildsystem: simple
+              build-commands:
+                - pip3 install --verbose --prefix=${FLATPAK_DEST} pygame-ce
+              sources:
+                - type: file
+                  url: https://pythonhosted.org
+                  sha256: d187e145efb772b2264906f368f51a4f00db1070624bf05ccf10034fe2db0aa6
+            - name: fluxoid
+              buildsystem: simple
+              build-commands:
+                - install -d /app/bin /app/share/fluxoid
+                - install -m 755 main.py /app/share/fluxoid/main.py
+                - cp Fluxoid_Logo.png background.png background.mp3 game_over.wav win.wav /app/share/fluxoid/
+                - echo -e '#!/bin/sh\npython3 /app/share/fluxoid/main.py "$@"' > /app/bin/fluxoid
+                - chmod +x /app/bin/fluxoid
+              sources:
+                - type: dir
+                  path: .
+          EOF
+
       - name: Setup Flatpak-builder
         uses: flatpak/flatpak-github-actions/flatpak-builder@v1
         with:
           bundle: fluxoid.flatpak
-          manifest-path: com.flicrowd.Fluxoid.yaml # Робот подтянет конфигурацию из корня репозитория
+          manifest-path: com.flicrowd.Fluxoid.yaml
           run-tests: false
 
       - name: Upload Flatpak to Release
@@ -55,9 +103,9 @@ jobs:
         with:
           files: fluxoid.flatpak
 
-  # 3. СБОРКА DMG (Для macOS пользователей)
+  # 3. СБОРКА DMG ДЛЯ MAC
   build-macos-dmg:
-    runs-on: macos-latest # GitHub выделит настоящий Mac-сервер в облаке
+    runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
 
@@ -66,18 +114,28 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install PyInstaller & Pygame
+      - name: Install PyInstaller & Pygame-ce
         run: |
-          pip install pyinstaller pygame
+          pip install pyinstaller pygame-ce
+
+      - name: Patch code with sys for Mac
+        run: |
+          echo -e "import sys\ndef get_path(name):\n    return getattr(sys, '_MEIPASS', '.') + '/' + name" > patched_main.py
+          cat main.py >> patched_main.py
+          sed -i '' 's/"background.mp3"/get_path("background.mp3")/g' patched_main.py
+          sed -i '' 's/"background.png"/get_path("background.png")/g' patched_main.py
+          sed -i '' 's/"Fluxoid_Logo.png"/get_path("Fluxoid_Logo.png")/g' patched_main.py
+          sed -i '' 's/"game_over.wav"/get_path("game_over.wav")/g' patched_main.py
+          sed -i '' 's/"win.wav"/get_path("win.wav")/g' patched_main.py
 
       - name: Build App Bundle via PyInstaller
         run: |
-          pyinstaller --windowed --onefile --add-data "background.png:." --add-data "background.mp3:." --add-data "game_over.wav:." --add-data "win.wav:." main.py
+          pyinstaller --windowed --onefile --name=Fluxoid --add-data "background.png:." --add-data "background.mp3:." --add-data "game_over.wav:." --add-data "win.wav:." --add-data "Fluxoid_Logo.png:." patched_main.py
 
       - name: Create DMG Disk Image
         run: |
           npm install -g create-dmg
-          create-dmg dist/main.app || true
+          create-dmg dist/Fluxoid.app || true
           mv *.dmg Fluxoid_macOS.dmg || true
 
       - name: Upload DMG to Release
