@@ -12,14 +12,18 @@ A complete neon-styled desktop game developed by **Flicrowd**. The project featu
 
 ## 🛠️ Requirements & Installation
 
-1. Install the required dependencies using the `requirements.txt` file:
-   ```bash
-   pip install -r requirements.txt
-   ```
-2. Run the main entry point of the game:
-   ```bash
-   python main.py
-   ```
+## 🛠️ Requirements & Installation
+
+Install the required dependencies using the `requirements.txt` file based on your OS:
+
+* **Windows:**
+  ```cmd
+  pip install -r requirements.txt
+  ```
+* **Linux / macOS:**
+  ```bash
+  pip3 install -r requirements.txt
+  ```
 
 ---
 *💡 Note for NixOS users: Before running the project, ensure your development environment includes Python 3 and the Pygame library (e.g., by initializing an isolated shell via `nix-shell -p python3Packages.pygame`).*
