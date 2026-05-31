@@ -19,7 +19,6 @@ jobs:
 
       - name: Patch code with sys for Linux
         run: |
-          # Внедряем логику sys в код на лету, чтобы не трогать main.py на GitHub
           echo -e "import sys\ndef get_path(name):\n    return getattr(sys, '_MEIPASS', '.') + '/' + name" > patched_main.py
           cat main.py >> patched_main.py
           sed -i 's/"background.mp3"/get_path("background.mp3")/g' patched_main.py
@@ -34,13 +33,11 @@ jobs:
           mkdir -p fluxoid-pkg/usr/local/share/fluxoid
           cp patched_main.py fluxoid-pkg/usr/local/share/fluxoid/main.py
           cp Fluxoid_Logo.png background.png background.mp3 game_over.wav win.wav fluxoid-pkg/usr/local/share/fluxoid/
-          echo -e '#!/bin/sh\npython3 /usr/local/share/fluxoid/main.py "$@"' > fluxoid-pkg/usr/local/bin/fluxoid
-          chmod +x fluxoid-pkg/usr/local/bin/fluxoid
 
       - name: Compile DEB and RPM
         run: |
-          fpm -s dir -t deb -n fluxoid -v 1.0.0 --vendor "Flicrowd" --maintainer "Flicrowd" -C fluxoid-pkg/ .
-          fpm -s dir -t rpm -n fluxoid -v 1.0.0 --vendor "Flicrowd" -C fluxoid-pkg/ .
+          fpm -s dir -t deb -n fluxoid -v 1.0.2 --vendor "Flicrowd" --maintainer "Flicrowd" -C fluxoid-pkg/ .
+          fpm -s dir -t rpm -n fluxoid -v 1.0.2 --vendor "Flicrowd" -C fluxoid-pkg/ .
 
       - name: Upload DEB & RPM to Release
         uses: softprops/action-gh-release@v2
@@ -49,15 +46,14 @@ jobs:
             *.deb
             *.rpm
 
-  # 2. СБОРКА FLATPAK (Для преподавателя)
+  # 2. СБОРКА FLATPAK
   build-flatpak:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
 
-      - name: Patch com.flicrowd.Fluxoid.yaml with Pygame-CE
+      - name: Create Flatpak Manifest On The Fly
         run: |
-          # Перезаписываем манифест под правильный и современный pygame-ce
           cat << 'EOF' > com.flicrowd.Fluxoid.yaml
           id: com.flicrowd.Fluxoid
           runtime: org.freedesktop.Platform
@@ -92,7 +88,7 @@ jobs:
           EOF
 
       - name: Setup Flatpak-builder
-        uses: flatpak/flatpak-github-actions/flatpak-builder@v1
+        uses: flatpak-actions/flatpak-builder@v1
         with:
           bundle: fluxoid.flatpak
           manifest-path: com.flicrowd.Fluxoid.yaml
@@ -103,7 +99,7 @@ jobs:
         with:
           files: fluxoid.flatpak
 
-  # 3. СБОРКА DMG ДЛЯ MAC
+  # 3. СБОРКА DMG FOR MAC
   build-macos-dmg:
     runs-on: macos-latest
     steps:
