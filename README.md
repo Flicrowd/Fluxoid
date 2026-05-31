@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="Fluxoid_Logo.png" alt="Fluxoid Logo" width="160" height="160">
+</p>
+
 # Fluxoid
 
 A complete neon-styled desktop game developed by **Flicrowd**. The project features an immersive space aesthetic, atmospheric background music, and dynamic audio effects.
