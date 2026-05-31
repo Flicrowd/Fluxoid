@@ -12,8 +12,6 @@ A complete neon-styled desktop game developed by **Flicrowd**. The project featu
 
 ## 🛠️ Requirements & Installation
 
-## 🛠️ Requirements & Installation
-
 Install the required dependencies using the `requirements.txt` file based on your OS:
 
 * **Windows:**
