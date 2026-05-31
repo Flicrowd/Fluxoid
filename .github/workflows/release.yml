@@ -1,0 +1,86 @@
+name: Build Universal Cross-Platform Release
+on:
+  push:
+    tags:
+      - 'v*' # Запуск автоматической сборки при создании тега (например, v1.0.0)
+
+jobs:
+  # 1. СБОРКА LINUX ПАКЕТОВ (.deb, .rpm)
+  build-linux-packages:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Ruby and FPM
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby ruby-dev rubygems gcc make rpm
+          sudo gem install --no-document fpm
+
+      - name: Prepare Package Directories
+        run: |
+          mkdir -p fluxoid-pkg/usr/local/bin
+          mkdir -p fluxoid-pkg/usr/local/share/fluxoid
+          cp main.py background.png background.mp3 game_over.wav win.wav requirements.txt fluxoid-pkg/usr/local/share/fluxoid/
+          echo -e '#!/bin/sh\npython3 /usr/local/share/fluxoid/main.py "$@"' > fluxoid-pkg/usr/local/bin/fluxoid
+          chmod +x fluxoid-pkg/usr/local/bin/fluxoid
+
+      - name: Compile DEB and RPM
+        run: |
+          fpm -s dir -t deb -n fluxoid -v 1.0.0 --vendor "Flicrowd" --maintainer "Flicrowd" -C fluxoid-pkg/ .
+          fpm -s dir -t rpm -n fluxoid -v 1.0.0 --vendor "Flicrowd" -C fluxoid-pkg/ .
+
+      - name: Upload DEB & RPM to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            *.deb
+            *.rpm
+
+  # 2. СБОРКА FLATPAK (Для NixOS преподавателя и любого Linux)
+  build-flatpak:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flatpak-builder
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v1
+        with:
+          bundle: fluxoid.flatpak
+          manifest-path: com.flicrowd.Fluxoid.yaml # Робот подтянет конфигурацию из корня репозитория
+          run-tests: false
+
+      - name: Upload Flatpak to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: fluxoid.flatpak
+
+  # 3. СБОРКА DMG (Для macOS пользователей)
+  build-macos-dmg:
+    runs-on: macos-latest # GitHub выделит настоящий Mac-сервер в облаке
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PyInstaller & Pygame
+        run: |
+          pip install pyinstaller pygame
+
+      - name: Build App Bundle via PyInstaller
+        run: |
+          pyinstaller --windowed --onefile --add-data "background.png:." --add-data "background.mp3:." --add-data "game_over.wav:." --add-data "win.wav:." main.py
+
+      - name: Create DMG Disk Image
+        run: |
+          npm install -g create-dmg
+          create-dmg dist/main.app || true
+          mv *.dmg Fluxoid_macOS.dmg || true
+
+      - name: Upload DMG to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Fluxoid_macOS.dmg
