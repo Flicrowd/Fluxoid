@@ -13,6 +13,8 @@ pygame.mixer.music.play(-1)
 pygame.mixer.music.set_volume(0.4)
 
 bg_img = pygame.image.load("background.png")
+icon = pygame.image.load("icon.png")
+pygame.display.set_icon(icon)
 
 game_over_sound = pygame.mixer.Sound("game_over.wav")
 win_sound = pygame.mixer.Sound("win.wav")
@@ -68,13 +70,11 @@ while running:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False  
-        
         elif event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT:
                 move_left = True
             elif event.key == pygame.K_RIGHT:
                 move_right = True
-            
             elif event.key == pygame.K_RETURN and (game_over == True or win == True):
                 paddle.x = 470
                 ball.x = 530
@@ -94,7 +94,6 @@ while running:
                         brick = pygame.Rect(bx, by, 70, 25)
                         bricks.append(brick)
                 pygame.mixer.music.play(-1)
-                
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
                 move_left = False
