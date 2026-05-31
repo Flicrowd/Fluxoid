@@ -13,7 +13,7 @@ pygame.mixer.music.play(-1)
 pygame.mixer.music.set_volume(0.4)
 
 bg_img = pygame.image.load("background.png")
-icon = pygame.image.load("icon.png")
+icon = pygame.image.load("Fluxoid_Logo.png")
 pygame.display.set_icon(icon)
 
 game_over_sound = pygame.mixer.Sound("game_over.wav")
