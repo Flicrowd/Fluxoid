@@ -23,5 +23,7 @@ Install the required dependencies using the `requirements.txt` file based on you
   pip3 install -r requirements.txt
   ```
 
----
-*💡 Note for NixOS users: Before running the project, ensure your development environment includes Python 3 and the Pygame library (e.g., by initializing an isolated shell via `nix-shell -p python3Packages.pygame`).*
+ ## 📄 License
+
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details.
+
