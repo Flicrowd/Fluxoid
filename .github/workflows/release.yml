@@ -36,6 +36,23 @@ jobs:
             *.deb
             *.rpm
 
+  build-flatpak:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Flatpak-builder
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v1.1
+        with:
+          bundle: fluxoid.flatpak
+          manifest-path: com.flicrowd.Fluxoid.yaml
+          run-tests: false
+
+      - name: Upload Flatpak to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: fluxoid.flatpak
+
   build-macos-dmg:
     runs-on: macos-latest
     steps:
@@ -63,4 +80,4 @@ jobs:
       - name: Upload DMG to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: Fluxoid_macOS.dmg
+          files: fluxoid_macOS.dmg

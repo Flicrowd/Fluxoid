@@ -12,9 +12,18 @@ HEIGHT = 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Fluxoid")
 
-pygame.mixer.music.load(get_path("background.mp3"))
-pygame.mixer.music.play(-1) 
-pygame.mixer.music.set_volume(0.4)
+tracks = [
+    {"file": "background.mp3", "name": "One Sly Move"},
+    {"file": "track2.mp3", "name": "Cloud Dancer"}
+]
+current_track_index = 0
+
+def play_selected_track():
+    pygame.mixer.music.load(get_path(tracks[current_track_index]["file"]))
+    pygame.mixer.music.play(-1) 
+    pygame.mixer.music.set_volume(0.4)
+
+play_selected_track()
 
 bg_img = pygame.image.load(get_path("background.png"))
 icon = pygame.image.load(get_path("Fluxoid_Logo.png"))
@@ -29,6 +38,7 @@ NEON_ORANGE = (255, 120, 0)
 YELLOW = (255, 215, 0)
 RED = (230, 50, 50)
 GREEN = (50, 230, 50)
+GRAY = (150, 150, 150)
 
 clock = pygame.time.Clock()
 FPS = 60
@@ -36,6 +46,7 @@ FPS = 60
 font = pygame.font.SysFont("Arial", 36)
 retry_font = pygame.font.SysFont("Arial", 28)
 final_font = pygame.font.SysFont("Arial", 72)
+music_font = pygame.font.SysFont("Arial", 24)
 
 paddle_width = 120
 paddle_height = 15
@@ -79,6 +90,12 @@ while running:
                 move_left = True
             elif event.key == pygame.K_RIGHT:
                 move_right = True
+            elif event.key == pygame.K_1:
+                current_track_index = 0
+                play_selected_track()
+            elif event.key == pygame.K_2:
+                current_track_index = 1
+                play_selected_track()
             elif event.key == pygame.K_RETURN and (game_over == True or win == True):
                 paddle.x = 470
                 ball.x = 530
@@ -97,7 +114,7 @@ while running:
                         by = 60 + row * 30  
                         brick = pygame.Rect(bx, by, 70, 25)
                         bricks.append(brick)
-                pygame.mixer.music.play(-1)
+                play_selected_track()
         elif event.type == pygame.KEYUP:
             if event.key == pygame.K_LEFT:
                 move_left = False
@@ -153,12 +170,28 @@ while running:
         screen.blit(loss_text, (350, 200))
         retryo_text = retry_font.render("To play again press ENTER", True, WHITE)
         screen.blit(retryo_text, (380, 420))
+        
+        current_music_text = music_font.render("Current Music: " + tracks[current_track_index]["name"], True, GRAY)
+        music_x = (WIDTH - current_music_text.get_width()) // 2
+        screen.blit(current_music_text, (music_x, 470))
+        
+        hint_text = music_font.render("Press 1 or 2 to change music track", True, YELLOW)
+        hint_x = (WIDTH - hint_text.get_width()) // 2
+        screen.blit(hint_text, (hint_x, 510))
 
     if win == True:
         win_text = final_font.render("YOU WIN", True, GREEN)
         screen.blit(win_text, (390, 200))
         retryw_text = retry_font.render("To play again press ENTER", True, WHITE)
         screen.blit(retryw_text, (380, 420))
+        
+        current_music_text = music_font.render("Current Music: " + tracks[current_track_index]["name"], True, GRAY)
+        music_x = (WIDTH - current_music_text.get_width()) // 2
+        screen.blit(current_music_text, (music_x, 470))
+        
+        hint_text = music_font.render("Press 1 or 2 to change music track", True, YELLOW)
+        hint_x = (WIDTH - hint_text.get_width()) // 2
+        screen.blit(hint_text, (hint_x, 510))
 
     pygame.display.flip()
     clock.tick(FPS)
