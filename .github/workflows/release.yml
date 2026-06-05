@@ -42,7 +42,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup Flatpak-builder
-        uses: flatpak/flatpak-github-actions/flatpak-builder@main
+        uses: flatpak/flatpak-github-actions/flatpak-builder@1.16.6
         with:
           bundle: fluxoid.flatpak
           manifest-path: com.flicrowd.Fluxoid.yaml
