@@ -21,6 +21,7 @@ def play_selected_track():
     pygame.mixer.music.set_volume(0.4)
 
 play_selected_track()
+
 bg_img = pygame.image.load(get_path("background.png"))
 pygame.display.set_icon(pygame.image.load(get_path("Fluxoid_Logo.png")))
 menu_logo = pygame.transform.scale(pygame.image.load(get_path("Fluxoid_Logo.png")), (200, 200))
