@@ -26,8 +26,8 @@ jobs:
 
       - name: Compile DEB and RPM with Auto-Dependencies
         run: |
-          fpm -s dir -t deb -n fluxoid -v 1.1.0 --depends python3 --depends python3-pygame -C fluxoid-pkg/ .
-          fpm -s dir -t rpm -n fluxoid -v 1.1.0 --depends python3 --depends python3-pygame -C fluxoid-pkg/ .
+          fpm -s dir -t deb -n fluxoid -v 1.2.0 --depends python3 --depends python3-pygame -C fluxoid-pkg/ .
+          fpm -s dir -t rpm -n fluxoid -v 1.2.0 --depends python3 --depends python3-pygame -C fluxoid-pkg/ .
 
       - name: Upload DEB & RPM to Release
         uses: softprops/action-gh-release@v2
@@ -42,7 +42,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Setup Flatpak-builder
-        uses: flatpak/flatpak-github-actions/flatpak-builder
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
         with:
           bundle: fluxoid.flatpak
           manifest-path: com.flicrowd.Fluxoid.yaml
