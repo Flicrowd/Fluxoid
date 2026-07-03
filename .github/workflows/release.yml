@@ -5,6 +5,29 @@ on:
       - 'v*'
 
 jobs:
+  build-windows-exe:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install PyInstaller & Pygame-ce
+        run: |
+          pip install pyinstaller pygame-ce
+
+      - name: Build Standalone Windows EXE
+        run: |
+          pyinstaller --noconsole --onefile --name=Fluxoid --icon="Fluxoid_Logo.ico" --add-data "background.png;." --add-data "background.mp3;." --add-data "track2.mp3;." --add-data "track3.mp3;." --add-data "track4.mp3;." --add-data "game_over.wav;." --add-data "win.wav;." --add-data "Fluxoid_Logo.png;." main.py
+
+      - name: Upload EXE to Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/Fluxoid.exe
+
   build-linux-packages:
     runs-on: ubuntu-latest
     steps:
@@ -20,14 +43,14 @@ jobs:
         run: |
           mkdir -p fluxoid-pkg/usr/local/bin
           mkdir -p fluxoid-pkg/usr/local/share/fluxoid
-          cp main.py Fluxoid_Logo.png background.png background.mp3 track2.mp3 game_over.wav win.wav fluxoid-pkg/usr/local/share/fluxoid/
+          cp main.py Fluxoid_Logo.png background.png background.mp3 track2.mp3 track3.mp3 track4.mp3 game_over.wav win.wav fluxoid-pkg/usr/local/share/fluxoid/
           echo -e '#!/bin/sh\npython3 /usr/local/share/fluxoid/main.py "$@"' > fluxoid-pkg/usr/local/bin/fluxoid
           chmod +x fluxoid-pkg/usr/local/bin/fluxoid
 
       - name: Compile DEB and RPM with Auto-Dependencies
         run: |
-          fpm -s dir -t deb -n fluxoid -v 1.2.0 --depends python3 --depends python3-pygame -C fluxoid-pkg/ .
-          fpm -s dir -t rpm -n fluxoid -v 1.2.0 --depends python3 --depends python3-pygame -C fluxoid-pkg/ .
+          fpm -s dir -t deb -n fluxoid -v 1.3.0 --depends python3 --depends python3-pygame -C fluxoid-pkg/ .
+          fpm -s dir -t rpm -n fluxoid -v 1.3.0 --depends python3 --depends python3-pygame -C fluxoid-pkg/ .
 
       - name: Upload DEB & RPM to Release
         uses: softprops/action-gh-release@v2
@@ -69,7 +92,7 @@ jobs:
 
       - name: Build App Bundle via PyInstaller
         run: |
-          pyinstaller --windowed --onefile --name=Fluxoid --add-data "background.png:." --add-data "background.mp3:." --add-data "track2.mp3:." --add-data "game_over.wav:." --add-data "win.wav:." --add-data "Fluxoid_Logo.png:." main.py
+          pyinstaller --windowed --onefile --name=Fluxoid --add-data "background.png:." --add-data "background.mp3:." --add-data "track2.mp3:." --add-data "track3.mp3:." --add-data "track4.mp3:." --add-data "game_over.wav:." --add-data "win.wav:." --add-data "Fluxoid_Logo.png:." main.py
 
       - name: Create DMG Disk Image
         run: |
