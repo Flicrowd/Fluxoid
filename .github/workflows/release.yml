@@ -4,6 +4,9 @@ on:
     tags:
       - 'v*'
 
+permissions:
+  contents: write
+
 jobs:
   build-windows-exe:
     runs-on: windows-latest
@@ -93,7 +96,7 @@ jobs:
 
       - name: Build App Bundle via PyInstaller
         run: |
-          pyinstaller --windowed --onefile --name=Fluxoid --add-data "background.png:." --add-data "background.mp3:." --add-data "track2.mp3:." --add-data "track3.mp3:." --add-data "track4.mp3:." --add-data "game_over.wav:." --add-data "win.wav:." --add-data "Fluxoid_Logo.png:." main.py
+          pyinstaller --windowed --onefile --name=Fluxoid --add-data "background.png;." --add-data "background.mp3;." --add-data "track2.mp3;." --add-data "track3.mp3;." --add-data "track4.mp3;." --add-data "game_over.wav;." --add-data "win.wav;." --add-data "Fluxoid_Logo.png;." main.py
 
       - name: Create DMG Disk Image
         run: |
